@@ -1,0 +1,80 @@
+import numpy as np
+from sklearn.ensemble import IsolationForest
+import pandas as pd
+import socket
+import time
+import json
+
+class IDSSensor:
+    def __init__(self):
+        self.model = IsolationForest(contamination=0.01)
+        self.is_trained = False
+        self.normal_traffic = []
+        
+    def collect_traffic(self, duration=60):
+        """Simulate network traffic collection"""
+        print(f"Collecting network traffic for {duration} seconds...")
+        time.sleep(5)  # Simulate collection time
+        
+        # Generate some example network features
+        # In a real system, these would come from packet analysis
+        for _ in range(100):
+            self.normal_traffic.append([
+                np.random.normal(100, 10),  # packet size
+                np.random.normal(0.5, 0.1),  # packets/second
+                np.random.randint(1, 10),  # different protocols
+                np.random.normal(0.2, 0.05)  # % encrypted
+            ])
+        
+        print(f"Collected {len(self.normal_traffic)} samples")
+        
+    def train_model(self):
+        """Train the anomaly detection model"""
+        if not self.normal_traffic:
+            self.collect_traffic()
+            
+        print("Training anomaly detection model...")
+        X = np.array(self.normal_traffic)
+        self.model.fit(X)
+        self.is_trained = True
+        print("Model trained successfully")
+        
+    def detect_anomalies(self, traffic):
+        """Detect anomalous traffic patterns"""
+        if not self.is_trained:
+            self.train_model()
+            
+        predictions = self.model.predict(traffic)
+        return predictions
+    
+    def monitor_network(self):
+        """Continuous monitoring simulation"""
+        print("Starting network monitoring...")
+        try:
+            while True:
+                # Simulate receiving new traffic data
+                new_traffic = np.array([
+                    [
+                        np.random.normal(100, 20), 
+                        np.random.normal(0.5, 0.3),
+                        np.random.randint(1, 15),
+                        np.random.normal(0.2, 0.1)
+                    ] for _ in range(5)
+                ])
+                
+                # Detect anomalies
+                anomalies = self.detect_anomalies(new_traffic)
+                
+                # Report anomalies
+                for i, is_anomaly in enumerate(anomalies):
+                    if is_anomaly == -1:
+                        print(f"ALERT: Anomalous traffic detected - {new_traffic[i]}")
+                
+                time.sleep(3)
+                
+        except KeyboardInterrupt:
+            print("\nMonitoring stopped")
+
+if __name__ == "__main__":
+    sensor = IDSSensor()
+    sensor.monitor_network()
